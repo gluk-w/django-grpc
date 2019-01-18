@@ -47,7 +47,7 @@ history = open('HISTORY.rst').read().replace('.. :changelog:', '')
 setup(
     name='django-grpc',
     version=version,
-    description="""Easy gRPC service based on Django application""",
+    description="""Easy Django based gRPC service""",
     long_description=readme + '\n\n' + history,
     author='Stan Misiurev',
     author_email='smisiurev@gmail.com',

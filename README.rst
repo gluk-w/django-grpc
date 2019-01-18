@@ -1,76 +1,48 @@
-=============================
-Django gRPC
-=============================
+# django-grpc
+Easy way to launch gRPC server with access to Django ORM and other handy staff.  
+gRPC request are much faster that traditional HTTP requests because are not
+passed through standard middlewares.
 
-.. image:: https://badge.fury.io/py/django-grpc.svg
-    :target: https://badge.fury.io/py/django-grpc
+## Installation
 
-.. image:: https://travis-ci.org/gluk-w/django-grpc.svg?branch=master
-    :target: https://travis-ci.org/gluk-w/django-grpc
+```bash
+pip install django-grpc
+``` 
 
-.. image:: https://codecov.io/gh/gluk-w/django-grpc/branch/master/graph/badge.svg
-    :target: https://codecov.io/gh/gluk-w/django-grpc
+Update settings.py
+```python
+INSTALLED_APPS = [
+    # ...
+    'django_grpc',
+]
 
-Easy gRPC service based on Django application
+GRPC_SERVICERS = ['dotted.path.to.callback']
+```
 
-Documentation
--------------
+The callback must look like following:
+```python
+import my_pb2
+import my_pb2_grpc
 
-The full documentation is at https://django-grpc.readthedocs.io.
+def grpc_hook(server):
+    my_pb2_grpc.add_MYServicer_to_server(MYServicer(), server)
 
-Quickstart
-----------
+...
+class MYServicer(my_pb2_grpc.MYServicer):
 
-Install Django gRPC::
+    def GetPage(self, request, context):
+        response = my_pb2.PageResponse(title="Demo object")
+        return response
+```
 
-    pip install django-grpc
+## Usage
+```bash
+python manage.py grpcserver
+```
 
-Add it to your `INSTALLED_APPS`:
-
-.. code-block:: python
-
-    INSTALLED_APPS = (
-        ...
-        'django_grpc.apps.DjangoGrpcConfig',
-        ...
-    )
-
-Add Django gRPC's URL patterns:
-
-.. code-block:: python
-
-    from django_grpc import urls as django_grpc_urls
+For developer's convenience add `--autoreload` flag during development.
 
 
-    urlpatterns = [
-        ...
-        url(r'^', include(django_grpc_urls)),
-        ...
-    ]
+## Serializers
+There is an easy way to serialize django model to gRPC message using `django_grpc.serializers.serialize_model`.
 
-Features
---------
-
-* TODO
-
-Running Tests
--------------
-
-Does the code actually work?
-
-::
-
-    source <YOURVIRTUALENV>/bin/activate
-    (myenv) $ pip install tox
-    (myenv) $ tox
-
-Credits
--------
-
-Tools used in rendering this package:
-
-*  Cookiecutter_
-*  `cookiecutter-djangopackage`_
-
-.. _Cookiecutter: https://github.com/audreyr/cookiecutter
-.. _`cookiecutter-djangopackage`: https://github.com/pydanny/cookiecutter-djangopackage

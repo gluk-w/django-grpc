@@ -1,2 +1,5 @@
+django>=2.0
 
-# Additional requirements go here
+# gRPC
+grpcio==1.6.0
+grpcio-tools==1.6.0
