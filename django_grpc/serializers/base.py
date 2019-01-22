@@ -1,5 +1,5 @@
 from google.protobuf.message import Message
-from google.protobuf.pyext._message import RepeatedCompositeContainer
+# from google.protobuf.pyext._message import RepeatedCompositeContainer
 
 from typing import Iterable
 from django.db.models import ForeignKey
@@ -78,8 +78,8 @@ def _message_value(val):
     Check if nested values need to be deserialized
     """
     # Convert repeated
-
-    if isinstance(val, RepeatedCompositeContainer):
+    # if isinstance(val, RepeatedCompositeContainer):
+    if val.__class__.__name__ == 'RepeatedCompositeContainer':
         return [
             message_to_python(it)
             for it in val

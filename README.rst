@@ -46,3 +46,7 @@ For developer's convenience add `--autoreload` flag during development.
 ## Serializers
 There is an easy way to serialize django model to gRPC message using `django_grpc.serializers.serialize_model`.
 
+
+## Testing
+You can call methods of your servicer and decode them using `django_grpc.serializers.deserialize_message` that
+will convert gRPC messages to python dictionary

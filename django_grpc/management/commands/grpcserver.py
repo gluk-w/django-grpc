@@ -8,6 +8,8 @@ from concurrent import futures
 from django.utils import autoreload
 from django.utils.module_loading import import_string
 
+from django_grpc.utils import extract_handlers
+
 
 class Command(BaseCommand):
     help = 'Run gRPC server'
@@ -16,6 +18,7 @@ class Command(BaseCommand):
         parser.add_argument('--max_workers', type=int, help="Number of workers")
         parser.add_argument('--port', type=int, default=50051, help="Port number to listen")
         parser.add_argument('--autoreload', action='store_true', default=False)
+        parser.add_argument('--list-handlers', action='store_true', default=False, "Print all registered endpoints")
 
     def handle(self, *args, **options):
         if options['autoreload'] is True:
@@ -35,6 +38,10 @@ class Command(BaseCommand):
 
         server.start()
         self.stdout.write("Server is listening port %s" % port)
+
+        if kwargs['list-handlers'] is True:
+            for handler in extract_handlers(server):
+                self.stdout.write(self.style.INFO(handler))
 
         # since server.start() will not block,
         # a sleep-loop is added to keep alive
