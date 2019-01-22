@@ -31,3 +31,13 @@ if django.VERSION >= (1, 10):
     MIDDLEWARE = ()
 else:
     MIDDLEWARE_CLASSES = ()
+
+
+INSTALLED_APPS = [
+    'django_grpc',
+    'tests.sampleapp',
+]
+
+GRPC_SERVICERS = (
+    'tests.sampleapp.utils.register_servicer',
+)
