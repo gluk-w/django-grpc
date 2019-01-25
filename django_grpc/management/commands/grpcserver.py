@@ -36,8 +36,9 @@ class Command(BaseCommand):
         self.stdout.write("Server is listening port %s" % port)
 
         if kwargs['list_handlers'] is True:
+            self.stdout.write("Registered handlers:")
             for handler in extract_handlers(server):
-                self.stdout.write(self.style.INFO(handler))
+                self.stdout.write("* %s" % handler)
 
         # since server.start() will not block,
         # a sleep-loop is added to keep alive

@@ -48,6 +48,7 @@ class BaseModelSerializer:
     @classmethod
     def serialize_model(cls, message_class, instance: 'Model', serializers):
         serializer = cls.find_for_model(instance, serializers)
+        serializer.serializers = serializers
         return message_class(**serializer._to_dict(message_class.DESCRIPTOR.fields_by_name.items(), instance))
 
     @classmethod
@@ -77,16 +78,22 @@ def _message_value(val):
     """
     Check if nested values need to be deserialized
     """
+    class_name = val.__class__.__name__
+    # List of structures
     # Convert repeated
     # if isinstance(val, RepeatedCompositeContainer):
-    if val.__class__.__name__ == 'RepeatedCompositeContainer':
+    if class_name == 'RepeatedCompositeContainer':
         return [
             message_to_python(it)
             for it in val
         ]
+    # List of simple types
+    if class_name == 'RepeatedScalarContainer':
+        return list(val)
 
-    # Convert complex types
+    # Convert single complex type (structure)
     if isinstance(val, Message):
         return message_to_python(val)
 
+    # Simple type (str, int, bool)
     return val
