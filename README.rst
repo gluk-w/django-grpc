@@ -16,7 +16,11 @@ INSTALLED_APPS = [
     'django_grpc',
 ]
 
-GRPC_SERVICERS = ['dotted.path.to.callback']
+GRPCSERVER = {
+    'servicers': ['dotted.path.to.callback'],
+    'interceptors': ['dotted.path.to.interceptor_class',],
+    'maximum_concurrent_rpcs': None,
+}
 ```
 
 The callback must look like following:
