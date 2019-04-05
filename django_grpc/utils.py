@@ -32,7 +32,6 @@ def add_servicers(server, servicers_list):
     """
     Add servicers to the server
     """
-    from django.conf import settings
     for path in servicers_list:
         logger.debug("Adding servicers from %s", path)
         callback = import_string(path)

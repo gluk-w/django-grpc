@@ -38,6 +38,6 @@ INSTALLED_APPS = [
     'tests.sampleapp',
 ]
 
-GRPC_SERVICERS = (
-    'tests.sampleapp.utils.register_servicer',
-)
+GRPCSERVER = {
+    'servicers': ('tests.sampleapp.utils.register_servicer',),
+}
