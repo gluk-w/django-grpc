@@ -44,7 +44,7 @@ def load_interceptors(strings):
     result = []
     for path in strings:
         logger.debug("Initializing interceptor from %s", path)
-        result.append(import_string(path))
+        result.append(import_string(path)())
     return result
 
 def extract_handlers(server):
