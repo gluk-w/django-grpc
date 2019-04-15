@@ -1,7 +1,8 @@
 # django-grpc
-Easy way to launch gRPC server with access to Django ORM and other handy staff.  
+Easy way to launch gRPC server with access to Django ORM and other handy staff.
 gRPC request are much faster that traditional HTTP requests because are not
 passed through standard middlewares.
+You need this project only if you want to use Django functionality in gRPC service. For pure python implementation [read this](https://grpc.io/docs/quickstart/python.html)
 
 ## Installation
 
@@ -23,7 +24,7 @@ GRPCSERVER = {
 }
 ```
 
-The callback must look like following:
+The callback that initializes "servicer" must look like following:
 ```python
 import my_pb2
 import my_pb2_grpc
