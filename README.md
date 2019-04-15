@@ -17,8 +17,8 @@ INSTALLED_APPS = [
 ]
 
 GRPCSERVER = {
-    'servicers': ['dotted.path.to.callback'],
-    'interceptors': ['dotted.path.to.interceptor_class',],
+    'servicers': ['dotted.path.to.callback'],  # see `grpc_hook()` below
+    'interceptors': ['dotted.path.to.interceptor_class',],  # optional, interceprots are similar to middleware in Django
     'maximum_concurrent_rpcs': None,
 }
 ```
