@@ -7,12 +7,8 @@ jobs:
 
     steps:
       - checkout
-      - run:
-        name: Install requirements
-        command: pip install tox
-      - run:
-        name: Run tests
-        command: tox
+      - run: pip install tox
+      - run: tox
 
 workflows:
   version: 2
