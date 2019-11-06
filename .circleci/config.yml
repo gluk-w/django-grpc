@@ -9,6 +9,8 @@ jobs:
       - checkout
       - run: pip install tox
       - run: tox
+      - store_test_results:
+          path: test-report.xml
 
 workflows:
   version: 2
