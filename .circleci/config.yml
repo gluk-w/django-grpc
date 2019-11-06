@@ -9,7 +9,7 @@ jobs:
       - checkout
       - run:
         name: Install requirements
-        commad: pip install tox
+        command: pip install tox
       - run:
         name: Run tests
         command: tox
