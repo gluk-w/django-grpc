@@ -4,8 +4,9 @@ language: python
 
 python:
   - "3.6"
+  - "3.7"
 
-env: 
+env:
 
 matrix:
   fast_finish: true

@@ -1,17 +1,13 @@
-import threading
-from time import sleep
-
+import os
 import pytest
-from django.core.management import call_command
 
+from django_grpc_testtools.executor import TestGRPCServer
 
 
 @pytest.fixture
-def grpc_server_async():
-    srv = threading.Thread(target=call_grpc_server_command, args=[{"max_workers": 3, "port": 50080, "autoreload": False}])
-    srv.start()
-    sleep(5)
-
-    yield
-
-    srv.join()
+def grpc_server():
+    manage_py = os.path.join(os.path.dirname(os.path.abspath(__file__)), "manage.py")
+    server = TestGRPCServer(manage_py)
+    server.start()
+    yield server.addr()
+    server.stop()

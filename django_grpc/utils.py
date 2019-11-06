@@ -19,7 +19,7 @@ def create_server(max_workers, port, interceptors=None):
     # create a gRPC server
     server = grpc.server(
         thread_pool=futures.ThreadPoolExecutor(max_workers=max_workers),
-        interceptors=interceptors,
+        # interceptors=interceptors,
         maximum_concurrent_rpcs=maximum_concurrent_rpcs
     )
 
@@ -32,6 +32,9 @@ def add_servicers(server, servicers_list):
     """
     Add servicers to the server
     """
+    if len(servicers_list) == 0:
+        logger.warning("No servicers configured. Did you add GRPSERVER['servicers'] list to settings?")
+
     for path in servicers_list:
         logger.debug("Adding servicers from %s", path)
         callback = import_string(path)
