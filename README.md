@@ -1,8 +1,18 @@
 # django-grpc
+
+[![CircleCI](https://circleci.com/gh/gluk-w/django-grpc.svg?style=svg)](https://circleci.com/gh/gluk-w/django-grpc)
+
+
 Easy way to launch gRPC server with access to Django ORM and other handy staff.
-gRPC request are much faster that traditional HTTP requests because are not
-passed through standard middlewares.
-You need this project only if you want to use Django functionality in gRPC service. For pure python implementation [read this](https://grpc.io/docs/quickstart/python.html)
+gRPC calls are much faster that traditional HTTP requests because communicate over
+persistent connection and are compressed. Underlying gRPC library is written in C which
+makes it work faster than any RESTful framework where a lot of time is spent on serialization/deserialization.
+
+Note that you need this project only if you want to use Django functionality in gRPC service. 
+For pure python implementation [read this](https://grpc.io/docs/quickstart/python.html)
+
+* Supported Python: 3.4+
+* Supported Django: 2.X (let me know if you need Django 3 support)
 
 ## Installation
 
@@ -18,7 +28,7 @@ INSTALLED_APPS = [
 ]
 
 GRPCSERVER = {
-    'servicers': ['dotted.path.to.callback'],  # see `grpc_hook()` below
+    'servicers': ['dotted.path.to.callback.eg.grpc_hook'],  # see `grpc_hook()` below
     'interceptors': ['dotted.path.to.interceptor_class',],  # optional, interceprots are similar to middleware in Django
     'maximum_concurrent_rpcs': None,
 }
