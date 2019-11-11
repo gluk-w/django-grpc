@@ -22,7 +22,12 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         if options['autoreload'] is True:
             self.stdout.write("ATTENTION! Autoreload is enabled!")
-            autoreload.main(self._serve, None, options)
+            if hasattr(autoreload, "run_with_reloader"):
+                # Django 2.2. and above
+                autoreload.run_with_reloader(self._serve, **options)
+            else:
+                # Before Django 2.2.
+                autoreload.main(self._serve, None, options)
         else:
             self._serve(**options)
 

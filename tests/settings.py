@@ -18,12 +18,12 @@ DATABASES = {
 
 ROOT_URLCONF = "tests.urls"
 
-INSTALLED_APPS = [
-    "django.contrib.auth",
-    "django.contrib.contenttypes",
-    "django.contrib.sites",
-    "django_grpc",
-]
+# INSTALLED_APPS = [
+#     "django.contrib.auth",
+#     "django.contrib.contenttypes",
+#     "django.contrib.sites",
+#     "django_grpc",
+# ]
 
 SITE_ID = 1
 
