@@ -51,19 +51,21 @@ class UploadCommand(Command):
         sys.exit()
 
 
-readme = open('README.rst').read()
-history = open('HISTORY.rst').read().replace('.. :changelog:', '')
+readme = open('README.md').read()
+history = open('HISTORY.md').read().replace('.. :changelog:', '')
 
 setup(
     name='django-grpc',
     version=about['__version__'],
     description="""Easy Django based gRPC service""",
     long_description=readme + '\n\n' + history,
+    long_description_content_type="text/markdown",
     author='Stan Misiurev',
     author_email='smisiurev@gmail.com',
     url='https://github.com/gluk-w/django-grpc',
     packages=[
         'django_grpc',
+        'django_grpc_testtools',
     ],
     include_package_data=True,
     install_requires=['setuptools'],
@@ -71,7 +73,7 @@ setup(
     zip_safe=False,
     keywords='django-grpc',
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
         'Natural Language :: English',
@@ -79,6 +81,7 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
     ],
     cmdclass={
         'upload': UploadCommand,
