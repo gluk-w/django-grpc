@@ -3,7 +3,7 @@
 [![CircleCI](https://circleci.com/gh/gluk-w/django-grpc.svg?style=svg)](https://circleci.com/gh/gluk-w/django-grpc)
 
 
-Easy way to launch gRPC server with access to Django ORM and other handy staff.
+Easy way to launch gRPC server with access to Django ORM and other handy stuff.
 gRPC calls are much faster that traditional HTTP requests because communicate over
 persistent connection and are compressed. Underlying gRPC library is written in C which
 makes it work faster than any RESTful framework where a lot of time is spent on serialization/deserialization.
