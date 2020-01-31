@@ -45,14 +45,7 @@ class Command(BaseCommand):
             for handler in extract_handlers(server):
                 self.stdout.write("* %s" % handler)
 
-        # since server.start() will not block,
-        # a sleep-loop is added to keep alive
-        try:
-            while True:
-                time.sleep(86400)
-        except KeyboardInterrupt:
-            server.stop(0)
-            sys.exit(0)
+        server.wait_for_termination()
 
 
 
