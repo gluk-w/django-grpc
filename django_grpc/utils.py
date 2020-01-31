@@ -5,6 +5,7 @@ from concurrent import futures
 import grpc
 from django.utils.module_loading import import_string
 
+from django_grpc.interceptors.db import DatabaseConnectionInterceptor
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +20,7 @@ def create_server(max_workers, port, interceptors=None):
     # create a gRPC server
     server = grpc.server(
         thread_pool=futures.ThreadPoolExecutor(max_workers=max_workers),
-        # interceptors=interceptors,
+        interceptors=interceptors,
         maximum_concurrent_rpcs=maximum_concurrent_rpcs
     )
 
@@ -41,14 +42,15 @@ def add_servicers(server, servicers_list):
         callback(server)
 
 
-def load_interceptors(strings):
-    if not strings:
-        return None
-    result = []
+def load_interceptors(strings) -> tuple:
+    # Default interceptors
+    result = [DatabaseConnectionInterceptor()]
+    # User defined interceptors 
     for path in strings:
         logger.debug("Initializing interceptor from %s", path)
         result.append(import_string(path)())
-    return result
+    return tuple(result)
+
 
 def extract_handlers(server):
     for path, it in server._state.generic_handlers[0]._method_handlers.items():
