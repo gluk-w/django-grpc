@@ -3,11 +3,10 @@ import threading
 from random import randint
 from time import sleep
 
-import grpc
 from django.core.management import call_command
 
 from django_grpc_testtools.executor import TestGRPCServer
-from tests.sampleapp import helloworld_pb2_grpc, helloworld_pb2
+from tests.helpers import call_hello_method
 
 
 def start_server(**params):
@@ -30,11 +29,6 @@ def start_server(**params):
     return "localhost:%s" % port
 
 
-def call_hello_method(addr, name):
-    with grpc.insecure_channel(addr) as channel:
-        stub = helloworld_pb2_grpc.GreeterStub(channel)
-        response, call = stub.SayHello.with_call(helloworld_pb2.HelloRequest(name=name))
-        return response.message
 
 
 def test_management_command(grpc_server):

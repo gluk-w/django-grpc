@@ -5,7 +5,8 @@ from concurrent import futures
 import grpc
 from django.utils.module_loading import import_string
 
-from django_grpc.interceptors.db import DatabaseConnectionInterceptor
+from django_grpc.signals.wrapper import SignalWrapper
+
 
 logger = logging.getLogger(__name__)
 
@@ -33,19 +34,20 @@ def add_servicers(server, servicers_list):
     """
     Add servicers to the server
     """
+    ps = SignalWrapper(server)
     if len(servicers_list) == 0:
         logger.warning("No servicers configured. Did you add GRPSERVER['servicers'] list to settings?")
 
     for path in servicers_list:
         logger.debug("Adding servicers from %s", path)
         callback = import_string(path)
-        callback(server)
+        callback(ps)
 
 
 def load_interceptors(strings) -> tuple:
     # Default interceptors
-    result = [DatabaseConnectionInterceptor()]
-    # User defined interceptors 
+    result = []
+    # User defined interceptors
     for path in strings:
         logger.debug("Initializing interceptor from %s", path)
         result.append(import_string(path)())

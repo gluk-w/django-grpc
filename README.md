@@ -58,6 +58,16 @@ python manage.py grpcserver
 For developer's convenience add `--autoreload` flag during development.
 
 
+## Signals
+The package uses Django signals to allow decoupled applications get notified when some actions occur:
+* `django_grpc.signals.grpc_request_started` - sent before gRPC server begins processing a request
+* `django_grpc.signals.grpc_request_finished` - sent when gRPC server finishes delivering response to the client
+* `django_grpc.signals.grpc_got_request_exception` - this signal is sent whenever RPC encounters an exception while
+processing an incoming request.
+
+Note that signal names are similar to Django's built-in signals, but have "grpc_" prefix.
+
+
 ## Serializers
 There is an easy way to serialize django model to gRPC message using `django_grpc.serializers.serialize_model`.
 
