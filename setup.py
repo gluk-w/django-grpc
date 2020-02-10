@@ -52,13 +52,13 @@ class UploadCommand(Command):
 
 
 readme = open('README.md').read()
-history = open('HISTORY.md').read().replace('.. :changelog:', '')
+# history = open('HISTORY.md').read().replace('.. :changelog:', '')
 
 setup(
     name='django-grpc',
     version=about['__version__'],
     description="""Easy Django based gRPC service""",
-    long_description=readme + '\n\n' + history,
+    long_description=readme,  # + '\n\n' + history,
     long_description_content_type="text/markdown",
     author='Stan Misiurev',
     author_email='smisiurev@gmail.com',
