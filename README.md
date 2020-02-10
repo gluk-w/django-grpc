@@ -73,5 +73,38 @@ There is an easy way to serialize django model to gRPC message using `django_grp
 
 
 ## Testing
-You can call methods of your servicer and decode them using `django_grpc.serializers.deserialize_message` that
-will convert gRPC messages to python dictionary
+Test your RPCs just like regular python methods which return some 
+structure or generator. You need to provide them with only 2 parameters:
+request (protobuf structure or generator) and context (use `FakeServicerContext` from the example below).
+
+### Fake Context
+You can pass instance of `django_grpc_testtools.FakeServicerContext` to your gRPC method
+to verify how it works with context (aborts, metadata and etc.).
+```python
+import grpc
+from django_grpc_testtools import FakeServicerContext
+from tests.sampleapp.servicer import Greeter
+from tests.sampleapp.helloworld_pb2 import HelloRequest
+
+servicer = Greeter()
+context = FakeServicerContext()
+request = HelloRequest(name='Tester')
+
+# To check metadata set by RPC 
+response = servicer.SayHello(request, context)
+assert context.get_trailing_metadata("Header1") == '...'
+
+# To check status code
+try:
+    servicer.SayHello(request, context) 
+except Exception:
+    pass
+
+assert context.abort_status == grpc.StatusCode.INVALID_ARGUMENT
+assert context.abort_message == 'Cannot say hello to John'
+```
+
+In addition to standard gRPC context methods, FakeServicerContext provides:
+ * `.set_invocation_metadata()` allows to simulate metadata from client to server.
+ * `.get_trailing_metadata()` to get metadata set by your server
+ * `.abort_status` and `.abort_message` to check if `.abort()` was called 
