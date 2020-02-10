@@ -78,11 +78,11 @@ structure or generator. You need to provide them with only 2 parameters:
 request (protobuf structure or generator) and context (use `FakeServicerContext` from the example below).
 
 ### Fake Context
-You can pass instance of `django_grpc_testtools.FakeServicerContext` to your gRPC method
+You can pass instance of `django_grpc_testtools.context.FakeServicerContext` to your gRPC method
 to verify how it works with context (aborts, metadata and etc.).
 ```python
 import grpc
-from django_grpc_testtools import FakeServicerContext
+from django_grpc_testtools.context import FakeServicerContext
 from tests.sampleapp.servicer import Greeter
 from tests.sampleapp.helloworld_pb2 import HelloRequest
 
