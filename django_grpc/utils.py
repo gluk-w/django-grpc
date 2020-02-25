@@ -55,23 +55,24 @@ def load_interceptors(strings) -> tuple:
 
 
 def extract_handlers(server):
-    for path, it in server._state.generic_handlers[0]._method_handlers.items():
-        unary = it.unary_unary
-        if unary is None:
-            name = "???"
-            params = "???"
-            abstract = 'DOES NOT EXIST'
-        else:
-            code = it.unary_unary.__code__
-            name = code.co_name
-            params = ", ".join(code.co_varnames)
-            abstract = ''
-            if isinstance(it.__class__, ABCMeta):
-                abstract = 'NOT IMPLEMENTED'
+    for handler in server._state.generic_handlers:
+        for path, it in handler._method_handlers.items():
+            unary = it.unary_unary
+            if unary is None:
+                name = "???"
+                params = "???"
+                abstract = 'DOES NOT EXIST'
+            else:
+                code = it.unary_unary.__code__
+                name = code.co_name
+                params = ", ".join(code.co_varnames)
+                abstract = ''
+                if isinstance(it.__class__, ABCMeta):
+                    abstract = 'NOT IMPLEMENTED'
 
-        yield "{path}: {name}({params}) {abstract}".format(
-            path=path,
-            name=name,
-            params=params,
-            abstract=abstract
-        )
+            yield "{path}: {name}({params}) {abstract}".format(
+                path=path,
+                name=name,
+                params=params,
+                abstract=abstract
+            )
