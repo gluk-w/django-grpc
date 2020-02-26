@@ -1,4 +1,5 @@
 import os
+import tempfile
 import threading
 from random import randint
 from time import sleep
@@ -48,3 +49,13 @@ def test_management_command_with_autoreload():
     server.stop()
 
 
+def test_management_command_stdout():
+    manage_py = os.path.join(os.path.dirname(os.path.abspath(__file__)), "manage.py")
+
+    with tempfile.NamedTemporaryFile() as tmp:
+        server = TestGRPCServer(manage_py, {'--list-handlers': ''}, stdout_file=tmp.name)
+        server.start()
+        server.stop()
+
+        stdout = open(tmp.name, "rb").read()
+        assert stdout
