@@ -9,7 +9,7 @@ persistent connection and are compressed. Underlying gRPC library is written in 
 makes it work faster than any RESTful framework where a lot of time is spent on serialization/deserialization.
 
 Note that you need this project only if you want to use Django functionality in gRPC service. 
-For pure python implementation [read this](https://grpc.io/docs/quickstart/python.html)
+For pure python implementation [read this](https://grpc.io/docs/languages/python/quickstart/)
 
 * Supported Python: 3.4+
 * Supported Django: 2.X (let me know if you need Django 3 support)
