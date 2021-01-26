@@ -17,12 +17,14 @@ def create_server(max_workers, port, interceptors=None):
     servicers_list = config.get('servicers', [])  # callbacks to add servicers to the server
     interceptors = load_interceptors(config.get('interceptors', []))
     maximum_concurrent_rpcs = config.get('maximum_concurrent_rpcs', None)
+    options = config.get('options', [])
 
     # create a gRPC server
     server = grpc.server(
         thread_pool=futures.ThreadPoolExecutor(max_workers=max_workers),
         interceptors=interceptors,
-        maximum_concurrent_rpcs=maximum_concurrent_rpcs
+        maximum_concurrent_rpcs=maximum_concurrent_rpcs,
+        options=options
     )
 
     add_servicers(server, servicers_list)
