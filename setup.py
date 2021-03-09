@@ -38,11 +38,23 @@ class UploadCommand(Command):
         except OSError:
             pass
 
-        self.status('Building Source and Wheel (universal) distribution…')
-        os.system('{0} setup.py sdist bdist_wheel --universal'.format(sys.executable))
+        self.status('Building Source and Wheel (universal) distribution...')
+        return_status = os.WEXITSTATUS(os.system('%s setup.py sdist bdist_wheel --universal' % sys.executable))
+        if return_status:
+            self.status("Failed to build the package!")
+            sys.exit(return_status)
 
-        self.status('Uploading the package to PyPI via Twine…')
-        os.system('twine upload dist/*')
+        self.status("Checking distribution...")
+        return_status = os.WEXITSTATUS(os.system("twine check dist/*"))
+        if return_status:
+            self.status("Failed to validate the package!")
+            sys.exit(return_status)
+
+        self.status('Uploading the package to PyPI via Twine...')
+        return_status = os.WEXITSTATUS(os.system('twine upload dist/*'))
+        if return_status:
+            self.status("Failed to upload the package!")
+            sys.exit(return_status)
 
         self.status('Pushing git tags…')
         os.system('git tag v{0}'.format(about['__version__']))
