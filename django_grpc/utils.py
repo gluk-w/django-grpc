@@ -18,6 +18,7 @@ def create_server(max_workers, port, interceptors=None):
     interceptors = load_interceptors(config.get('interceptors', []))
     maximum_concurrent_rpcs = config.get('maximum_concurrent_rpcs', None)
     options = config.get('options', [])
+    credentials = config.get('credentials', None)
 
     # create a gRPC server
     server = grpc.server(
@@ -26,9 +27,28 @@ def create_server(max_workers, port, interceptors=None):
         maximum_concurrent_rpcs=maximum_concurrent_rpcs,
         options=options
     )
-
     add_servicers(server, servicers_list)
-    server.add_insecure_port('[::]:%s' % port)
+
+    if credentials is None:
+        server.add_insecure_port('[::]:%s' % port)
+    else:
+        credential_data = list()
+        for credential in credentials:
+            # read in key and certificate
+            with open(credential.get('private_key'), 'rb') as pp:
+                private_key = pp.read()
+            with open(credential.get('certificate_chain'), 'rb') as cp:
+                certificate_chain = cp.read()
+
+            credential_data.append((private_key, certificate_chain, ))
+        
+        # create server credentials
+        logger.debug("Adding server credentials...")
+        server_credentials = grpc.ssl_server_credentials(credential_data)
+
+        # add secure port with crendentials
+        server.add_secure_port('[::]:%s' % port, server_credentials)
+
     return server
 
 
