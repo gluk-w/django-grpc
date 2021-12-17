@@ -32,6 +32,10 @@ GRPCSERVER = {
     'interceptors': ['dotted.path.to.interceptor_class',],  # optional, interceprots are similar to middleware in Django
     'maximum_concurrent_rpcs': None,
     'options': [("grpc.max_receive_message_length", 1024 * 1024 * 100)],  # optional, list of key-value pairs to configure the channel. The full list of available channel arguments: https://grpc.github.io/grpc/core/group__grpc__arg__keys.html
+    'credentials': [{
+        'private_key': 'private_key.pem',
+        'certificate_chain': 'certificate_chain.pem'
+    }]    # required only if SSL/TLS support is required to be enabled
 }
 ```
 
