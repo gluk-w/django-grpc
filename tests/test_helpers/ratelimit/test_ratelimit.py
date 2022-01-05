@@ -18,8 +18,8 @@ class FakeGRPCServer:
     def Bar(self, request, context):
         return True
 
-    @ratelimit(max_calls=3, time_period=10, group="FakeGRPCServer.Foo")
-    @ratelimit(max_calls=2, time_period=10, keys=["metadata:user-agent"])
+    @ratelimit(max_calls=5, time_period=10, group="FakeGRPCServer.Foo")
+    @ratelimit(max_calls=2, time_period=5, keys=["metadata:user-agent"])
     def Baz(self, request, context):
         return True
 
@@ -78,7 +78,32 @@ def test_ratelimit_reached_for_different_groups(clear_cache):
         assert context.abort_message == ("Reached limit of 2 calls per 5 seconds. "
                                          "Resource will be available in 3 seconds.")
 
-def test_multiple_rpc_with_the_same_group(clear_cache):
+
+def test_rpc_with_multiple_decorators(clear_cache):
+    request = helloworld_pb2.HelloRequest()
+    context = FakeServicerContext()
+    context.set_invocation_metadata((("user-agent", "Python 3.9 client"),))
+    server = FakeGRPCServer()
+
+    with freeze_time(datetime.utcfromtimestamp(17)):
+        assert server.Baz(request, context)
+        assert server.Baz(request, context)
+
+        with pytest.raises(Exception):
+            server.Baz(request, context)
+
+        assert context.abort_status == grpc.StatusCode.RESOURCE_EXHAUSTED
+        assert context.abort_message == ("Reached limit of 2 calls per 5 seconds. "
+                                         "Resource will be available in 3 seconds.")
+
+    context1 = FakeServicerContext()
+    context1.set_invocation_metadata((("user-agent", "Python 3.10 client"),))
+    with freeze_time(datetime.utcfromtimestamp(17)):
+        assert server.Baz(request, context1)
+        assert server.Baz(request, context1)
+
+
+def test_multiple_rpc_with_the_same_group_with_multiple_decorators(clear_cache):
     request = helloworld_pb2.HelloRequest()
     context = FakeServicerContext()
     server = FakeGRPCServer()
@@ -88,12 +113,12 @@ def test_multiple_rpc_with_the_same_group(clear_cache):
         assert server.Foo(request, context)
 
     with freeze_time(datetime.utcfromtimestamp(17)):
-        assert server.Bar(request, context)
-        assert server.Bar(request, context)
+        server.Baz(request, context)
+        server.Baz(request, context)
 
         with pytest.raises(Exception):
-            server.Bar(request, context)
+            server.Baz(request, context)
 
         assert context.abort_status == grpc.StatusCode.RESOURCE_EXHAUSTED
-        assert context.abort_message == ("Reached limit of 2 calls per 5 seconds. "
+        assert context.abort_message == ("Reached limit of 5 calls per 10 seconds. "
                                          "Resource will be available in 3 seconds.")

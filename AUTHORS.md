@@ -6,4 +6,4 @@
 
 ## Contributors
 
-None yet. Why not be the first?
+* Aleksandr Edakin <alexeagro98@gmail.com>

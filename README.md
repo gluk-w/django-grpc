@@ -76,6 +76,70 @@ Note that signal names are similar to Django's built-in signals, but have "grpc_
 ## Serializers
 There is an easy way to serialize django model to gRPC message using `django_grpc.serializers.serialize_model`.
 
+## Helpers
+
+### Ratelimits
+
+You can limit number of requests to your procedures by using decorator `django_grpc.helpers.ratelimit.ratelimit`.
+
+```python
+from tests.sampleapp import helloworld_pb2_grpc, helloworld_pb2
+from django_grpc.helpers import ratelimit
+
+
+class Greeter(helloworld_pb2_grpc.GreeterServicer):
+    
+    @ratelimit(max_calls=10, time_period=60)
+    def SayHello(self, request, context):
+        return helloworld_pb2.HelloReply(message='Hello, %s!' % request.name)
+```
+> When limit is reached for given time period decorator will abort with status `grpc.StatusCode.RESOURCE_EXHAUSTED`
+
+As storage for state of calls [Django's cache framework](https://docs.djangoproject.com/en/4.0/topics/cache/#django-s-cache-framework)
+is used. By default `"default"` cache system is used but you can specify any other in settings `RATELIMIT_USE_CACHE`
+
+#### Advanced usage
+
+Using groups
+```python
+@ratelimit(max_calls=10, time_period=60, group="main")
+def foo(request, context):
+    ...
+
+@ratelimit(max_calls=5, time_period=60, group="main")
+def bar(request, context):
+    ...
+```
+`foo` and `bar` will share the same counter because they are in the same group
+
+Using keys
+```python
+@ratelimit(max_calls=5, time_period=10, keys=["request:dot.path.to.field"])
+@ratelimit(max_calls=5, time_period=10, keys=["metadata:user-agent"])
+@ratelimit(max_calls=5, time_period=10, keys=[lambda request, context: context.peer()])
+```
+Right now 3 type of keys are supported with prefixes `"request:"`, `"metadata:"` and as callable.
+
+- `"request:"` allows to extract request's field value by doted path
+- `"metadata:"` allows to extract metadata from `context.invocation_metadata()`
+- callable function that takes request and context and returns string
+
+> NOTE: if value of key is empty string it still will be considered a valid value
+> and can cause sharing of ratelimits between different RPCs in the same group
+
+> TIP: To use the same configuration for different RPCs use dict variable
+> ```python
+> MAIN_GROUP = {"max_calls": 5, "time_period": 60, "group": "main"}
+> 
+> @ratelimit(**MAIN_GROUP)
+> def foo(request, context):
+>    ...
+>
+> @ratelimit(**MAIN_GROUP)
+> def bar(request, context):
+>    ...
+> ```
+
 
 ## Testing
 Test your RPCs just like regular python methods which return some 

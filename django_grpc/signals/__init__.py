@@ -3,13 +3,16 @@ from django.dispatch import Signal
 
 
 # Triggered before each RPC
-grpc_request_started = Signal(providing_args=["request", "context"])
+# Args provided by signal: request, context
+grpc_request_started = Signal()
 
 # Triggered after each RPC
-grpc_request_finished = Signal(providing_args=["request", "context"])
+# Args provided by signal: request, context
+grpc_request_finished = Signal()
 
 # Triggered if there was an error during RPC execution
-grpc_got_request_exception = Signal(providing_args=["request", "context", "exception"])
+# Args provided by signal: request, context, exception
+grpc_got_request_exception = Signal()
 
 # Reset database connections between requests
 grpc_request_started.connect(reset_queries)

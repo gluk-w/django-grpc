@@ -1,5 +1,6 @@
 import os
 import pytest
+from django.core.cache import cache
 
 from django_grpc.utils import create_server
 from django_grpc_testtools.executor import TestGRPCServer
@@ -29,3 +30,11 @@ def local_grpc_server():
     yield "localhost:50080"
 
     server.stop(True)
+
+
+@pytest.fixture(autouse=True)
+def clear_cache():
+    """Clears django cache before and after test."""
+    cache.clear()
+    yield
+    cache.clear()

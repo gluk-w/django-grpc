@@ -16,6 +16,13 @@ DATABASES = {
     }
 }
 
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "",
+    },
+}
+
 ROOT_URLCONF = "tests.urls"
 
 SITE_ID = 1
