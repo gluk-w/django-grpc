@@ -18,13 +18,6 @@ DATABASES = {
 
 ROOT_URLCONF = "tests.urls"
 
-# INSTALLED_APPS = [
-#     "django.contrib.auth",
-#     "django.contrib.contenttypes",
-#     "django.contrib.sites",
-#     "django_grpc",
-# ]
-
 SITE_ID = 1
 
 if django.VERSION >= (1, 10):
