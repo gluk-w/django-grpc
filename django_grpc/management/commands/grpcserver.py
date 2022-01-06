@@ -1,13 +1,9 @@
 import datetime
-import time
-import grpc
-import sys
 
 from django.core.management.base import BaseCommand
-from concurrent import futures
 from django.utils import autoreload
 
-from django_grpc.utils import add_servicers, extract_handlers, create_server
+from django_grpc.utils import create_server, extract_handlers
 
 
 class Command(BaseCommand):
@@ -46,6 +42,3 @@ class Command(BaseCommand):
                 self.stdout.write("* %s" % handler)
 
         server.wait_for_termination()
-
-
-

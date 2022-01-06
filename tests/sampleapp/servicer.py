@@ -7,4 +7,3 @@ class Greeter(helloworld_pb2_grpc.GreeterServicer):
             raise ValueError("Emulated error")
 
         return helloworld_pb2.HelloReply(message='Hello, %s!' % request.name)
-

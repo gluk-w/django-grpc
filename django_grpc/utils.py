@@ -40,13 +40,13 @@ def create_server(max_workers, port, interceptors=None):
             with open(credential.get('certificate_chain'), 'rb') as cp:
                 certificate_chain = cp.read()
 
-            credential_data.append((private_key, certificate_chain, ))
-        
+            credential_data.append((private_key, certificate_chain,))
+
         # create server credentials
         logger.debug("Adding server credentials...")
         server_credentials = grpc.ssl_server_credentials(credential_data)
 
-        # add secure port with crendentials
+        # add secure port with credentials
         server.add_secure_port('[::]:%s' % port, server_credentials)
 
     return server

@@ -16,14 +16,14 @@ DATABASES = {
     }
 }
 
-ROOT_URLCONF = "tests.urls"
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "",
+    },
+}
 
-# INSTALLED_APPS = [
-#     "django.contrib.auth",
-#     "django.contrib.contenttypes",
-#     "django.contrib.sites",
-#     "django_grpc",
-# ]
+ROOT_URLCONF = "tests.urls"
 
 SITE_ID = 1
 

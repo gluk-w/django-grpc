@@ -14,8 +14,8 @@ def start_server(**params):
     Starts gRPC server in a separate thread using "grpcserver" management command with given parameters
     :return: connection string
     """
-    def _grpc_server_async(options):
 
+    def _grpc_server_async(options):
         call_command("grpcserver", **options)
 
     port = 50000 + randint(0, 10000)
@@ -27,8 +27,6 @@ def start_server(**params):
     srv.start()
     sleep(5)
     return "localhost:%s" % port
-
-
 
 
 def test_management_command(grpc_server):
@@ -46,5 +44,3 @@ def test_management_command_with_autoreload():
     assert call_hello_method(server.addr(), 'Autoreload') == 'Hello, Autoreload!'
 
     server.stop()
-
-

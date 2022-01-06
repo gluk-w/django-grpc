@@ -1,5 +1,4 @@
 from google.protobuf.message import Message
-# from google.protobuf.pyext._message import RepeatedCompositeContainer
 
 from typing import Iterable
 from django.db.models import ForeignKey
