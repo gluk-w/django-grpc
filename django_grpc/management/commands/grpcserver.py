@@ -9,6 +9,7 @@ from django_grpc.utils import create_server, extract_handlers
 
 class Command(BaseCommand):
     help = 'Run gRPC server'
+    config = getattr(settings, 'GRPCSERVER', dict())
 
     def add_arguments(self, parser):
         parser.add_argument('--max_workers', type=int, help="Number of workers")
