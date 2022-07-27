@@ -3,7 +3,10 @@ import logging
 from concurrent import futures
 
 import grpc
+
 from django.utils.module_loading import import_string
+from django_grpc.signals.wrapper import SignalWrapper
+from django.conf import settings
 
 from django_grpc.signals.wrapper import SignalWrapper
 
@@ -12,21 +15,30 @@ logger = logging.getLogger(__name__)
 
 
 def create_server(max_workers, port, interceptors=None):
-    from django.conf import settings
     config = getattr(settings, 'GRPCSERVER', dict())
     servicers_list = config.get('servicers', [])  # callbacks to add servicers to the server
     interceptors = load_interceptors(config.get('interceptors', []))
     maximum_concurrent_rpcs = config.get('maximum_concurrent_rpcs', None)
     options = config.get('options', [])
     credentials = config.get('credentials', None)
+    is_async = config.get('async', False)
+
 
     # create a gRPC server
-    server = grpc.server(
-        thread_pool=futures.ThreadPoolExecutor(max_workers=max_workers),
-        interceptors=interceptors,
-        maximum_concurrent_rpcs=maximum_concurrent_rpcs,
-        options=options
-    )
+    if is_async is True:
+        server = grpc.aio.server(
+            interceptors=interceptors,
+            maximum_concurrent_rpcs=maximum_concurrent_rpcs,
+            options=options
+        )
+    else:
+        server = grpc.server(
+            thread_pool=futures.ThreadPoolExecutor(max_workers=max_workers),
+            interceptors=interceptors,
+            maximum_concurrent_rpcs=maximum_concurrent_rpcs,
+            options=options
+        )
+    
     add_servicers(server, servicers_list)
 
     if credentials is None:
