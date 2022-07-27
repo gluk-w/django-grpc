@@ -35,12 +35,12 @@ class Command(BaseCommand):
 
     def _serve(self, max_workers, port, *args, **kwargs):
         autoreload.raise_last_exception()
-        self.stdout.write("Starting server at %s" % datetime.datetime.now())
+        self.stdout.write("gRPC server starting at %s" % datetime.datetime.now())
 
         server = create_server(max_workers, port)
         server.start()
 
-        self.stdout.write("Server is listening port %s" % port)
+        self.stdout.write("gRPC server is listening port %s" % port)
 
         if kwargs['list_handlers'] is True:
             self.stdout.write("Registered handlers:")
