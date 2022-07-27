@@ -1,6 +1,6 @@
 django>=2.0
 
 # gRPC
-protobuf==3.15.0
-grpcio==1.25.0
-grpcio-tools==1.25.0
+protobuf==4.21.4
+grpcio==1.46.2
+grpcio-tools==1.46.2

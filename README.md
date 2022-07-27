@@ -35,7 +35,8 @@ GRPCSERVER = {
     'credentials': [{
         'private_key': 'private_key.pem',
         'certificate_chain': 'certificate_chain.pem'
-    }]    # required only if SSL/TLS support is required to be enabled
+    }],    # required only if SSL/TLS support is required to be enabled
+    'async': False  # Default: False, if True then gRPC server will start in ASYNC mode
 }
 ```
 
