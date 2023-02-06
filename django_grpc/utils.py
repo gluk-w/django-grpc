@@ -78,14 +78,14 @@ def add_servicers(server, servicers_list):
         callback(ps)
 
 
-def load_interceptors(strings) -> tuple:
+def load_interceptors(strings) -> list:
     # Default interceptors
     result = []
     # User defined interceptors
     for path in strings:
         logger.debug("Initializing interceptor from %s", path)
         result.append(import_string(path)())
-    return tuple(result)
+    return result
 
 
 def extract_handlers(server):
