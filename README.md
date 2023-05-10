@@ -12,7 +12,7 @@ Note that you need this project only if you want to use Django functionality in 
 For pure python implementation [read this](https://grpc.io/docs/languages/python/quickstart/)
 
 * Supported Python: 3.4+
-* Supported Django: 2.X and 3.X
+* Supported Django: 2.X, 3.X and 4.X
 
 ## Installation
 
