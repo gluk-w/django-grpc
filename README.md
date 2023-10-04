@@ -2,25 +2,25 @@
 
 [![CircleCI](https://circleci.com/gh/gluk-w/django-grpc.svg?style=svg)](https://circleci.com/gh/gluk-w/django-grpc)
 
-
 Easy way to launch gRPC server with access to Django ORM and other handy stuff.
 gRPC calls are much faster that traditional HTTP requests because communicate over
 persistent connection and are compressed. Underlying gRPC library is written in C which
 makes it work faster than any RESTful framework where a lot of time is spent on serialization/deserialization.
 
-Note that you need this project only if you want to use Django functionality in gRPC service. 
+Note that you need this project only if you want to use Django functionality in gRPC service.
 For pure python implementation [read this](https://grpc.io/docs/languages/python/quickstart/)
 
-* Supported Python: 3.4+
-* Supported Django: 2.X, 3.X and 4.X
+- Supported Python: 3.4+
+- Supported Django: 2.X, 3.X and 4.X
 
 ## Installation
 
 ```bash
 pip install django-grpc
-``` 
+```
 
 Update settings.py
+
 ```python
 INSTALLED_APPS = [
     # ...
@@ -41,6 +41,7 @@ GRPCSERVER = {
 ```
 
 The callback that initializes "servicer" must look like following:
+
 ```python
 import my_pb2
 import my_pb2_grpc
@@ -57,25 +58,39 @@ class MYServicer(my_pb2_grpc.MYServicer):
 ```
 
 ## Usage
+
 ```bash
 python manage.py grpcserver
 ```
 
 For developer's convenience add `--autoreload` flag during development.
 
-
 ## Signals
+
 The package uses Django signals to allow decoupled applications get notified when some actions occur:
-* `django_grpc.signals.grpc_request_started` - sent before gRPC server begins processing a request
-* `django_grpc.signals.grpc_request_finished` - sent when gRPC server finishes delivering response to the client
-* `django_grpc.signals.grpc_got_request_exception` - this signal is sent whenever RPC encounters an exception while
-processing an incoming request.
 
-Note that signal names are similar to Django's built-in signals, but have "grpc_" prefix.
+- `django_grpc.signals.grpc_request_started` - sent before gRPC server begins processing a request
+- `django_grpc.signals.grpc_request_finished` - sent when gRPC server finishes delivering response to the client
+- `django_grpc.signals.grpc_got_request_exception` - this signal is sent whenever RPC encounters an exception while
+  processing an incoming request.
 
+Note that signal names are similar to Django's built-in signals, but have "grpc\_" prefix.
 
 ## Serializers
+
 There is an easy way to serialize django model to gRPC message using `django_grpc.serializers.serialize_model`.
+Or you can use `django_grpc.serializers.drf.GrpcSerializer` to serialize and deserialize like django rest framework.
+
+```
+from django_grpc.serializers.drf import GrpcSerializer
+class MySerializer(GrpcSerializer):
+    class Meta:
+        model = MyModel
+        proto_class = MyProtoClass
+        fields = '__all__'
+
+proto_data = MySerializer(instance=MyModel.objects.first()).message
+```
 
 ## Helpers
 
@@ -89,11 +104,12 @@ from django_grpc.helpers import ratelimit
 
 
 class Greeter(helloworld_pb2_grpc.GreeterServicer):
-    
+
     @ratelimit(max_calls=10, time_period=60)
     def SayHello(self, request, context):
         return helloworld_pb2.HelloReply(message='Hello, %s!' % request.name)
 ```
+
 > When limit is reached for given time period decorator will abort with status `grpc.StatusCode.RESOURCE_EXHAUSTED`
 
 As storage for state of calls [Django's cache framework](https://docs.djangoproject.com/en/4.0/topics/cache/#django-s-cache-framework)
@@ -102,6 +118,7 @@ is used. By default `"default"` cache system is used but you can specify any oth
 #### Advanced usage
 
 Using groups
+
 ```python
 @ratelimit(max_calls=10, time_period=60, group="main")
 def foo(request, context):
@@ -111,14 +128,17 @@ def foo(request, context):
 def bar(request, context):
     ...
 ```
+
 `foo` and `bar` will share the same counter because they are in the same group
 
 Using keys
+
 ```python
 @ratelimit(max_calls=5, time_period=10, keys=["request:dot.path.to.field"])
 @ratelimit(max_calls=5, time_period=10, keys=["metadata:user-agent"])
 @ratelimit(max_calls=5, time_period=10, keys=[lambda request, context: context.peer()])
 ```
+
 Right now 3 type of keys are supported with prefixes `"request:"`, `"metadata:"` and as callable.
 
 - `"request:"` allows to extract request's field value by doted path
@@ -129,9 +149,10 @@ Right now 3 type of keys are supported with prefixes `"request:"`, `"metadata:"`
 > and can cause sharing of ratelimits between different RPCs in the same group
 
 > TIP: To use the same configuration for different RPCs use dict variable
+>
 > ```python
 > MAIN_GROUP = {"max_calls": 5, "time_period": 60, "group": "main"}
-> 
+>
 > @ratelimit(**MAIN_GROUP)
 > def foo(request, context):
 >    ...
@@ -141,15 +162,17 @@ Right now 3 type of keys are supported with prefixes `"request:"`, `"metadata:"`
 >    ...
 > ```
 
-
 ## Testing
-Test your RPCs just like regular python methods which return some 
+
+Test your RPCs just like regular python methods which return some
 structure or generator. You need to provide them with only 2 parameters:
 request (protobuf structure or generator) and context (use `FakeServicerContext` from the example below).
 
 ### Fake Context
+
 You can pass instance of `django_grpc_testtools.context.FakeServicerContext` to your gRPC method
 to verify how it works with context (aborts, metadata and etc.).
+
 ```python
 import grpc
 from django_grpc_testtools.context import FakeServicerContext
@@ -160,13 +183,13 @@ servicer = Greeter()
 context = FakeServicerContext()
 request = HelloRequest(name='Tester')
 
-# To check metadata set by RPC 
+# To check metadata set by RPC
 response = servicer.SayHello(request, context)
 assert context.get_trailing_metadata("Header1") == '...'
 
 # To check status code
 try:
-    servicer.SayHello(request, context) 
+    servicer.SayHello(request, context)
 except Exception:
     pass
 
@@ -175,6 +198,7 @@ assert context.abort_message == 'Cannot say hello to John'
 ```
 
 In addition to standard gRPC context methods, FakeServicerContext provides:
- * `.set_invocation_metadata()` allows to simulate metadata from client to server.
- * `.get_trailing_metadata()` to get metadata set by your server
- * `.abort_status` and `.abort_message` to check if `.abort()` was called 
+
+- `.set_invocation_metadata()` allows to simulate metadata from client to server.
+- `.get_trailing_metadata()` to get metadata set by your server
+- `.abort_status` and `.abort_message` to check if `.abort()` was called
