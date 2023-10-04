@@ -79,10 +79,12 @@ Note that signal names are similar to Django's built-in signals, but have "grpc\
 ## Serializers
 
 There is an easy way to serialize django model to gRPC message using `django_grpc.serializers.serialize_model`.
-Or you can use `django_grpc.serializers.drf.GrpcSerializer` to serialize and deserialize like django rest framework.
 
-```
+Or you can use `django_grpc.serializers.drf.GrpcSerializer` to serialize and deserialize like django rest framework, need `djangorestframework` dependency.
+
+```python
 from django_grpc.serializers.drf import GrpcSerializer
+
 class MySerializer(GrpcSerializer):
     class Meta:
         model = MyModel
