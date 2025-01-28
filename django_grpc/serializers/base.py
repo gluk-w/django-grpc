@@ -1,7 +1,7 @@
 from google.protobuf.message import Message
 
 from typing import Iterable
-from django.db.models import ForeignKey
+from django.db.models import ForeignKey, Model
 from django.db.models.fields.reverse_related import ForeignObjectRel
 
 

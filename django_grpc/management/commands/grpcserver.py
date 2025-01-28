@@ -8,21 +8,26 @@ from django_grpc.utils import create_server, extract_handlers
 
 
 class Command(BaseCommand):
-    help = 'Run gRPC server'
-    config = getattr(settings, 'GRPCSERVER', dict())
+    help = "Run gRPC server"
+    config = getattr(settings, "GRPCSERVER", dict())
 
     def add_arguments(self, parser):
-        parser.add_argument('--max_workers', type=int, help="Number of workers")
-        parser.add_argument('--port', type=int, default=50051, help="Port number to listen")
-        parser.add_argument('--autoreload', action='store_true', default=False)
-        parser.add_argument('--list-handlers', action='store_true', default=False, help="Print all registered endpoints")
+        parser.add_argument("--max_workers", type=int, help="Number of workers")
+        parser.add_argument("--port", type=int, default=50051, help="Port number to listen")
+        parser.add_argument("--autoreload", action="store_true", default=False)
+        parser.add_argument(
+            "--list-handlers",
+            action="store_true",
+            default=False,
+            help="Print all registered endpoints",
+        )
 
     def handle(self, *args, **options):
-        is_async = self.config.get('async', False)
+        is_async = self.config.get("async", False)
         if is_async is True:
             self._serve_async(**options)
         else:
-            if options['autoreload'] is True:
+            if options["autoreload"] is True:
                 self.stdout.write("ATTENTION! Autoreload is enabled!")
                 if hasattr(autoreload, "run_with_reloader"):
                     # Django 2.2. and above
@@ -42,7 +47,7 @@ class Command(BaseCommand):
 
         self.stdout.write("gRPC server is listening port %s" % port)
 
-        if kwargs['list_handlers'] is True:
+        if kwargs["list_handlers"] is True:
             self.stdout.write("Registered handlers:")
             for handler in extract_handlers(server):
                 self.stdout.write("* %s" % handler)
@@ -58,7 +63,7 @@ class Command(BaseCommand):
             await server.start()
             self.stdout.write("gRPC async server is listening port %s" % port)
 
-            if kwargs['list_handlers'] is True:
+            if kwargs["list_handlers"] is True:
                 self.stdout.write("Registered handlers:")
                 for handler in extract_handlers(server):
                     self.stdout.write("* %s" % handler)

@@ -8,8 +8,6 @@ from django.utils.module_loading import import_string
 from django_grpc.signals.wrapper import SignalWrapper
 from django.conf import settings
 
-from django_grpc.signals.wrapper import SignalWrapper
-
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +20,6 @@ def create_server(max_workers, port, interceptors=None):
     options = config.get('options', [])
     credentials = config.get('credentials', None)
     is_async = config.get('async', False)
-
 
     # create a gRPC server
     if is_async is True:
@@ -38,7 +35,7 @@ def create_server(max_workers, port, interceptors=None):
             maximum_concurrent_rpcs=maximum_concurrent_rpcs,
             options=options
         )
-    
+
     add_servicers(server, servicers_list)
 
     if credentials is None:
@@ -95,14 +92,14 @@ def extract_handlers(server):
             if unary is None:
                 name = "???"
                 params = "???"
-                abstract = 'DOES NOT EXIST'
+                abstract = "DOES NOT EXIST"
             else:
                 code = it.unary_unary.__code__
                 name = code.co_name
                 params = ", ".join(code.co_varnames)
                 abstract = ''
                 if isinstance(it.__class__, ABCMeta):
-                    abstract = 'NOT IMPLEMENTED'
+                    abstract = "NOT IMPLEMENTED"
 
             yield "{path}: {name}({params}) {abstract}".format(
                 path=path,
