@@ -5,4 +5,6 @@ def test_extract_handlers():
     server = create_server(1, 50080)
     assert list(extract_handlers(server)) == [
         '/helloworld.Greeter/SayHello: inner(args, kwargs, response, exc) NOT IMPLEMENTED',
+        '/helloworld.Greeter/SayHelloStreamReply: ???(???) DOES NOT EXIST',
+        '/helloworld.Greeter/SayHelloBidiStream: ???(???) DOES NOT EXIST',
     ]

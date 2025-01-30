@@ -1,6 +1,0 @@
-django>=2.0
-
-# gRPC
-protobuf==4.21.4
-grpcio==1.47.0
-grpcio-tools==1.47.0

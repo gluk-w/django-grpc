@@ -3,7 +3,7 @@ from random import randint
 from mirakuru import TCPExecutor
 
 
-class TestGRPCServer:
+class GRPCServerForTests:
     def __init__(self, manage_py, params=None):
         if params is None:
             params = {}
@@ -30,4 +30,3 @@ class TestGRPCServer:
 
     def stop(self):
         self.process.stop()
-

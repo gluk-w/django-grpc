@@ -5,7 +5,7 @@ from time import sleep
 
 from django.core.management import call_command
 
-from django_grpc_testtools.executor import TestGRPCServer
+from django_grpc_testtools.executor import GRPCServerForTests
 from tests.helpers import call_hello_method
 
 
@@ -38,7 +38,7 @@ def test_management_command(grpc_server):
 
 def test_management_command_with_autoreload():
     manage_py = os.path.join(os.path.dirname(os.path.abspath(__file__)), "manage.py")
-    server = TestGRPCServer(manage_py, {'--autoreload': ''})
+    server = GRPCServerForTests(manage_py, {'--autoreload': ''})
     server.start()
 
     assert call_hello_method(server.addr(), 'Autoreload') == 'Hello, Autoreload!'

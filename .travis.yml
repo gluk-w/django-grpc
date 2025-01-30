@@ -3,19 +3,35 @@
 language: python
 
 python:
-  - "3.6"
-  - "3.7"
+  - "3.11"
+  - "3.12"
 
 env:
+  global:
+    - POETRY_VIRTUALENVS_CREATE=false  # Use the system's Python interpreter
 
-matrix:
-  fast_finish: true
+  matrix:
+    - TOX_ENV=django42
+    - TOX_ENV=django50
 
-# command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
-install: pip install -r requirements_test.txt
+# Cache pip and Poetry dependencies for faster builds
+cache:
+  pip: true
+  directories:
+    - $HOME/.cache/pypoetry
 
-# command to run tests using coverage, e.g. python setup.py test
+# Install Poetry and dependencies
+before_install:
+  - curl -sSL https://install.python-poetry.org | python3 -
+  - export PATH="$HOME/.local/bin:$PATH"
+  - poetry --version
+
+install:
+  - poetry install --with=dev,qa
+
+# Run the tests
 script: tox -e $TOX_ENV
 
+# Upload coverage to Codecov
 after_success:
   - codecov -e TOX_ENV
