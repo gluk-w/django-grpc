@@ -1,4 +1,6 @@
 from functools import wraps
+from typing import Dict
+
 import grpc
 from grpc._utilities import RpcMethodHandler
 
@@ -41,7 +43,11 @@ class SignalWrapper:
 
         return RpcMethodHandler(**kwargs)
 
-    def add_registered_method_handlers(self, service_name: str, registered_method_handlers: tuple):
+    def add_registered_method_handlers(
+        self,
+        service_name: str,
+        method_handlers: Dict[str, grpc.RpcMethodHandler],
+    ):
         # do nothing; see https://github.com/grpc/grpc/issues/36683
         # and https://github.com/grpc/grpc/pull/36696
         pass
