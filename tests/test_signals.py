@@ -1,6 +1,7 @@
 import pytest
 from grpc import RpcError
 
+from django_grpc.utils import create_server
 from tests.helpers import call_hello_method
 
 

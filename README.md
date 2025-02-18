@@ -1,8 +1,5 @@
 # django-grpc
 
-[![CircleCI](https://circleci.com/gh/gluk-w/django-grpc.svg?style=svg)](https://circleci.com/gh/gluk-w/django-grpc)
-
-
 Easy way to launch gRPC server with access to Django ORM and other handy stuff.
 gRPC calls are much faster that traditional HTTP requests because communicate over
 persistent connection and are compressed. Underlying gRPC library is written in C which
@@ -37,6 +34,7 @@ GRPCSERVER = {
         'certificate_chain': 'certificate_chain.pem'
     }],    # required only if SSL/TLS support is required to be enabled
     'async': False  # Default: False, if True then gRPC server will start in ASYNC mode
+    'reflection': False, # Default: False, enables reflection on a gRPC Server (https://grpc.io/docs/guides/reflection/)
 }
 ```
 

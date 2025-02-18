@@ -12,11 +12,13 @@ protobuf = "^5.29.3"
 grpcio = "^1.70.0"
 grpcio-tools = "^1.70.0"
 django = ">=4.2,<5.2"
+grpcio-reflection = "^1.70.0"
 
 
 [tool.poetry.group.dev.dependencies]
 bumpversion = "^0.6.0"
 wheel = "^0.45.1"
+pytest-django = "^4.10.0"
 
 [tool.poetry.group.qa.dependencies]
 mirakuru = "^2.5.3"

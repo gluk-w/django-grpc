@@ -1,9 +1,12 @@
 import datetime
 import asyncio
 
+from django.core.exceptions import ImproperlyConfigured
 from django.core.management.base import BaseCommand
 from django.utils import autoreload
 from django.conf import settings
+
+from django_grpc.signals import grpc_shutdown
 from django_grpc.utils import create_server, extract_handlers
 
 
@@ -39,10 +42,14 @@ class Command(BaseCommand):
                 self._serve(**options)
 
     def _serve(self, max_workers, port, *args, **kwargs):
+        """
+        Run gRPC server
+        """
         autoreload.raise_last_exception()
         self.stdout.write("gRPC server starting at %s" % datetime.datetime.now())
 
         server = create_server(max_workers, port)
+
         server.start()
 
         self.stdout.write("gRPC server is listening port %s" % port)
@@ -53,9 +60,17 @@ class Command(BaseCommand):
                 self.stdout.write("* %s" % handler)
 
         server.wait_for_termination()
+        # Send shutdown signal to all connected receivers
+        grpc_shutdown.send(None)
 
     def _serve_async(self, max_workers, port, *args, **kwargs):
+        """
+        Run gRPC server in async mode
+        """
         self.stdout.write("gRPC async server starting  at %s" % datetime.datetime.now())
+
+        # Coroutines to be invoked when the event loop is shutting down.
+        _cleanup_coroutines = []
 
         server = create_server(max_workers, port)
 
@@ -70,4 +85,14 @@ class Command(BaseCommand):
 
             await server.wait_for_termination()
 
-        asyncio.get_event_loop().run_until_complete(_main_routine())
+        async def _graceful_shutdown():
+            # Send the signal to all connected receivers on server shutdown.
+            # https://github.com/gluk-w/django-grpc/issues/31
+            grpc_shutdown.send(None)
+
+        loop = asyncio.get_event_loop()
+        try:
+            loop.run_until_complete(_main_routine())
+        finally:
+            loop.run_until_complete(*_cleanup_coroutines)
+            loop.close()
