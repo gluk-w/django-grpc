@@ -18,3 +18,6 @@ grpc_got_request_exception = Signal()
 grpc_request_started.connect(reset_queries)
 grpc_request_started.connect(close_old_connections)
 grpc_request_finished.connect(close_old_connections)
+
+# Triggered when the server receives graceful shut down signal
+grpc_shutdown = Signal()

@@ -3,6 +3,7 @@ import logging
 from concurrent import futures
 
 import grpc
+from django.core.exceptions import ImproperlyConfigured
 
 from django.utils.module_loading import import_string
 from django_grpc.signals.wrapper import SignalWrapper
@@ -20,6 +21,7 @@ def create_server(max_workers, port, interceptors=None):
     options = config.get('options', [])
     credentials = config.get('credentials', None)
     is_async = config.get('async', False)
+    need_reflection = config.get('reflection', False)
 
     # create a gRPC server
     if is_async is True:
@@ -37,6 +39,9 @@ def create_server(max_workers, port, interceptors=None):
         )
 
     add_servicers(server, servicers_list)
+
+    if need_reflection:
+        enable_reflection(server)
 
     if credentials is None:
         server.add_insecure_port('[::]:%s' % port)
@@ -61,7 +66,7 @@ def create_server(max_workers, port, interceptors=None):
     return server
 
 
-def add_servicers(server, servicers_list):
+def add_servicers(server, servicers_list: list[str]):
     """
     Add servicers to the server
     """
@@ -107,3 +112,24 @@ def extract_handlers(server):
                 params=params,
                 abstract=abstract
             )
+
+def enable_reflection(server):
+    """
+    Enables gRPC reflection for the server so consumers can discover available services and methods.
+    https://grpc.io/docs/guides/reflection/
+    """
+    try:
+        from grpc_reflection.v1alpha import reflection
+    except ImportError:
+        raise ImproperlyConfigured(
+            "Failed to enable gRPC reflection. " +
+            "Install `grpcio-reflection` package or disable \"reflection\" in settings."
+        )
+
+    service_names = [
+        handler.service_name()
+        for handler in server._state.generic_handlers
+    ]
+
+    service_names.append(reflection.SERVICE_NAME)
+    reflection.enable_server_reflection(service_names, server)

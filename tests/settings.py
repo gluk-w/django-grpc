@@ -40,4 +40,5 @@ INSTALLED_APPS = [
 
 GRPCSERVER = {
     'servicers': ('tests.sampleapp.utils.register_servicer',),
+    'reflection': False,
 }
