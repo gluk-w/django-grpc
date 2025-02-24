@@ -1,10 +1,14 @@
 [tool.poetry]
 name = "django-grpc"
-version = "1.0.25"
+version = "1.0.26"
 description = "Easy gRPC service based on Django application"
 authors = ["Stan Misiurev <smisiurev@gmail.com>"]
 license = "MIT License"
 readme = "README.md"
+packages = [
+    { include = "django_grpc" },
+    { include = "django_grpc_testtools" }
+]
 
 [tool.poetry.dependencies]
 python = "^3.11"
