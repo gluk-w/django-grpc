@@ -113,6 +113,7 @@ def extract_handlers(server):
                 abstract=abstract
             )
 
+
 def enable_reflection(server):
     """
     Enables gRPC reflection for the server so consumers can discover available services and methods.
@@ -122,7 +123,7 @@ def enable_reflection(server):
         from grpc_reflection.v1alpha import reflection
     except ImportError:
         raise ImproperlyConfigured(
-            "Failed to enable gRPC reflection. " +
+            "Failed to enable gRPC reflection. "
             "Install `grpcio-reflection` package or disable \"reflection\" in settings."
         )
 

@@ -1,7 +1,6 @@
 import datetime
 import asyncio
 
-from django.core.exceptions import ImproperlyConfigured
 from django.core.management.base import BaseCommand
 from django.utils import autoreload
 from django.conf import settings
