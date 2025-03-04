@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "django-grpc"
-version = "1.0.26"
+version = "1.0.27"
 description = "Easy gRPC service based on Django application"
 authors = ["Stan Misiurev <smisiurev@gmail.com>"]
 license = "MIT License"
