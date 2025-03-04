@@ -1,4 +1,8 @@
-from typing import Tuple
+from typing import NoReturn
+from grpc import RpcError, StatusCode
+from collections.abc import Sequence, Mapping
+
+MetadataType = Sequence[tuple[str, str]]
 
 
 class FakeServicerContext:
@@ -8,20 +12,20 @@ class FakeServicerContext:
     """
 
     def __init__(self):
-        self.abort_status = None
-        self.abort_message = ""
-        self._invocation_metadata = tuple()
-        self._trailing_metadata = dict()
+        self.abort_status: StatusCode = StatusCode.UNKNOWN
+        self.abort_message: str = ""
+        self._invocation_metadata: MetadataType = tuple()
+        self._trailing_metadata: Mapping[str, str] = dict()
 
-    def abort(self, status, message):
+    def abort(self, status: StatusCode, message: str) -> NoReturn:
         """
         gRPC method that is called on RPC exit
         """
         self.abort_status = status
         self.abort_message = message
-        raise Exception()  # Just like original context
+        raise RpcError(message)  # Just like original context
 
-    def set_trailing_metadata(self, items: Tuple[Tuple[str, str]]):
+    def set_trailing_metadata(self, items: MetadataType) -> None:
         """
         gRPC method that is called to set response metadata
         """
@@ -30,21 +34,20 @@ class FakeServicerContext:
             for d in items
         }
 
-    def get_trailing_metadata(self, key: str):
+    def get_trailing_metadata(self, key: str) -> str:
         """
         Helper to retrieve response metadata value by key
         """
         return self._trailing_metadata[key]
 
-    def invocation_metadata(self) -> Tuple[Tuple[str, str]]:
+    def invocation_metadata(self) -> MetadataType:
         """
         gRPC method that retrieves request metadata
         """
         return self._invocation_metadata
 
-    def set_invocation_metadata(self, items: Tuple[Tuple[str, str]]):
+    def set_invocation_metadata(self, items: MetadataType) -> None:
         """
         Helper to emulate request metadata
         """
         self._invocation_metadata = items
-

@@ -52,6 +52,7 @@ class SignalWrapper:
         # and https://github.com/grpc/grpc/pull/36696
         pass
 
+
 def _unary_unary(func):
     if func is None:
         return
