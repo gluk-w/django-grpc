@@ -1,9 +1,17 @@
+from datetime import datetime
 from typing import NoReturn
 from grpc import RpcError, StatusCode
 from collections.abc import Sequence, Mapping
 from grpc import ServicerContext
 
 MetadataType = Sequence[tuple[str, str]]
+_NON_OK_RENDEZVOUS_REPR_FORMAT = (
+    "<{} of RPC that terminated with:\n"
+    "\tstatus = {}\n"
+    '\tdetails = "{}"\n'
+    '\tdebug_error_string = "{}"\n'
+    ">"
+)
 
 
 class FakeServicerContext(ServicerContext):
@@ -24,7 +32,19 @@ class FakeServicerContext(ServicerContext):
         """
         self.abort_status = status
         self.abort_message = message
-        raise RpcError(message)  # Just like original context
+        debug_error_string = (
+            "UNKNOWN:Error received from peer  "
+            "{grpc_message:\"" + message + "\", "
+            "grpc_status:" + str(status.value[0]) + ", "
+            "created_time:\"" + str(datetime.now()) + "\"}"
+        )
+        stderr = _NON_OK_RENDEZVOUS_REPR_FORMAT.format(
+            RpcError.__name__,
+            status,
+            message,
+            debug_error_string,
+        )
+        raise RpcError(stderr)
 
     def set_trailing_metadata(self, items: MetadataType) -> None:
         """
