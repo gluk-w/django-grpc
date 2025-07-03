@@ -111,8 +111,10 @@ class Command(BaseCommand):
         autoreload.raise_last_exception()
         self.stdout.write("gRPC server starting at %s" % datetime.datetime.now())
 
-        # 시그널 핸들러 설정
-        self._setup_signal_handlers()
+        # autoreload 모드가 아닐 때만 시그널 핸들러 설정
+        # autoreload는 별도 스레드에서 실행되므로 메인 스레드가 아니어서 시그널 핸들러를 등록할 수 없음
+        if not kwargs.get("autoreload", False):
+            self._setup_signal_handlers()
 
         server = create_server(max_workers, port)
         self._server = server
@@ -127,16 +129,23 @@ class Command(BaseCommand):
             for handler in extract_handlers(server):
                 self.stdout.write("* %s" % handler)
 
-        # Graceful shutdown을 위한 대기 루프
-        try:
-            while not self._shutdown_event.is_set():
-                time.sleep(0.1)
-        except KeyboardInterrupt:
-            self.stdout.write("Received keyboard interrupt, starting graceful shutdown...")
-            self._shutdown_event.set()
+        # autoreload 모드가 아닐 때만 graceful shutdown 로직 실행
+        if not kwargs.get("autoreload", False):
+            # Graceful shutdown을 위한 대기 루프
+            try:
+                while not self._shutdown_event.is_set():
+                    time.sleep(0.1)
+            except KeyboardInterrupt:
+                self.stdout.write("Received keyboard interrupt, starting graceful shutdown...")
+                self._shutdown_event.set()
 
-        # Graceful shutdown 수행
-        self._graceful_shutdown(server)
+            # Graceful shutdown 수행
+            self._graceful_shutdown(server)
+        else:
+            # autoreload 모드에서는 기존 방식대로 wait_for_termination 사용
+            server.wait_for_termination()
+            # Send shutdown signal to all connected receivers
+            grpc_shutdown.send(None)
 
     def _serve_async(self, max_workers, port, *args, **kwargs):
         """
@@ -144,8 +153,10 @@ class Command(BaseCommand):
         """
         self.stdout.write("gRPC async server starting  at %s" % datetime.datetime.now())
 
-        # 시그널 핸들러 설정
-        self._setup_signal_handlers()
+        # autoreload 모드가 아닐 때만 시그널 핸들러 설정
+        # autoreload는 별도 스레드에서 실행되므로 메인 스레드가 아니어서 시그널 핸들러를 등록할 수 없음
+        if not kwargs.get("autoreload", False):
+            self._setup_signal_handlers()
 
         # Coroutines to be invoked when the event loop is shutting down.
         _cleanup_coroutines = []
@@ -163,12 +174,17 @@ class Command(BaseCommand):
                 for handler in extract_handlers(server):
                     self.stdout.write("* %s" % handler)
 
-            # Graceful shutdown을 위한 대기
-            while not self._shutdown_event.is_set():
-                await asyncio.sleep(0.1)
+            # autoreload 모드가 아닐 때만 graceful shutdown 로직 실행
+            if not kwargs.get("autoreload", False):
+                # Graceful shutdown을 위한 대기
+                while not self._shutdown_event.is_set():
+                    await asyncio.sleep(0.1)
 
-            # Graceful shutdown 수행
-            await self._graceful_shutdown_async(server)
+                # Graceful shutdown 수행
+                await self._graceful_shutdown_async(server)
+            else:
+                # autoreload 모드에서는 기존 방식대로 wait_for_termination 사용
+                await server.wait_for_termination()
 
         async def _graceful_shutdown():
             # Send the signal to all connected receivers on server shutdown.
@@ -179,9 +195,13 @@ class Command(BaseCommand):
         try:
             loop.run_until_complete(_main_routine())
         except KeyboardInterrupt:
-            self.stdout.write("Received keyboard interrupt, starting graceful shutdown...")
-            self._shutdown_event.set()
-            loop.run_until_complete(_main_routine())
+            if not kwargs.get("autoreload", False):
+                self.stdout.write("Received keyboard interrupt, starting graceful shutdown...")
+                self._shutdown_event.set()
+                loop.run_until_complete(_main_routine())
+            else:
+                # autoreload 모드에서는 KeyboardInterrupt를 무시하고 정상 종료
+                pass
         finally:
             loop.run_until_complete(*_cleanup_coroutines)
             loop.close()
