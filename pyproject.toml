@@ -12,11 +12,11 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.11"
-protobuf = "*"
-grpcio = "*"
-grpcio-tools = "*"
+protobuf = "6.31.1"
+grpcio = "1.73.1"
+grpcio-tools = "1.73.1"
 django = ">=4.2,<6.0"
-grpcio-reflection = "*"
+grpcio-reflection = "1.73.1"
 
 
 [tool.poetry.group.dev.dependencies]
