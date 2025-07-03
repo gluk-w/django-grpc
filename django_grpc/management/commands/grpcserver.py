@@ -1,5 +1,8 @@
 import datetime
 import asyncio
+import signal
+import threading
+import time
 
 from django.core.management.base import BaseCommand
 from django.utils import autoreload
@@ -12,6 +15,13 @@ from django_grpc.utils import create_server, extract_handlers
 class Command(BaseCommand):
     help = "Run gRPC server"
     config = getattr(settings, "GRPCSERVER", dict())
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Graceful shutdown을 위한 상태 관리
+        self._shutdown_event = threading.Event()
+        self._server = None
+        self._original_sigterm_handler = None
 
     def add_arguments(self, parser):
         parser.add_argument("--max_workers", type=int, help="Number of workers")
@@ -40,6 +50,60 @@ class Command(BaseCommand):
             else:
                 self._serve(**options)
 
+    def _setup_signal_handlers(self):
+        """시그널 핸들러를 설정합니다 (Gunicorn arbiter.py 참고)"""
+        # SIGTERM 핸들러 저장
+        self._original_sigterm_handler = signal.signal(signal.SIGTERM, self._handle_sigterm)
+        
+        # SIGINT 핸들러도 설정 (Ctrl+C)
+        signal.signal(signal.SIGINT, self._handle_sigterm)
+        
+        self.stdout.write("Signal handlers registered for graceful shutdown")
+
+    def _handle_sigterm(self, signum, frame):
+        """SIGTERM 시그널을 처리하여 graceful shutdown을 시작합니다"""
+        self.stdout.write(f"Received signal {signum}. Starting graceful shutdown...")
+        self._shutdown_event.set()
+
+    def _graceful_shutdown(self, server):
+        """서버를 gracefully하게 종료합니다"""
+        try:
+            # 새로운 연결 수락을 중지
+            self.stdout.write("Stopping server from accepting new connections...")
+            
+            # gRPC 서버 종료 (graceful=True로 설정하여 진행 중인 요청 완료 대기)
+            if hasattr(server, 'stop'):
+                # 동기 서버의 경우
+                server.stop(grace=True)
+            else:
+                # 비동기 서버의 경우
+                asyncio.create_task(server.stop(grace=True))
+            
+            # Django 시그널 전송
+            grpc_shutdown.send(None)
+            
+            self.stdout.write("Graceful shutdown completed")
+            
+        except Exception as e:
+            self.stderr.write(f"Error during graceful shutdown: {e}")
+
+    async def _graceful_shutdown_async(self, server):
+        """비동기 서버를 gracefully하게 종료합니다"""
+        try:
+            # 새로운 연결 수락을 중지
+            self.stdout.write("Stopping async server from accepting new connections...")
+            
+            # gRPC 비동기 서버 종료
+            await server.stop(grace=True)
+            
+            # Django 시그널 전송
+            grpc_shutdown.send(None)
+            
+            self.stdout.write("Async graceful shutdown completed")
+            
+        except Exception as e:
+            self.stderr.write(f"Error during async graceful shutdown: {e}")
+
     def _serve(self, max_workers, port, *args, **kwargs):
         """
         Run gRPC server
@@ -47,20 +111,32 @@ class Command(BaseCommand):
         autoreload.raise_last_exception()
         self.stdout.write("gRPC server starting at %s" % datetime.datetime.now())
 
+        # 시그널 핸들러 설정
+        self._setup_signal_handlers()
+
         server = create_server(max_workers, port)
+        self._server = server
 
         server.start()
 
         self.stdout.write("gRPC server is listening port %s" % port)
 
-        if kwargs["list_handlers"] is True:
+        # list_handlers 옵션이 있으면 핸들러 목록 출력 (기본값 False)
+        if kwargs.get("list_handlers", False):
             self.stdout.write("Registered handlers:")
             for handler in extract_handlers(server):
                 self.stdout.write("* %s" % handler)
 
-        server.wait_for_termination()
-        # Send shutdown signal to all connected receivers
-        grpc_shutdown.send(None)
+        # Graceful shutdown을 위한 대기 루프
+        try:
+            while not self._shutdown_event.is_set():
+                time.sleep(0.1)
+        except KeyboardInterrupt:
+            self.stdout.write("Received keyboard interrupt, starting graceful shutdown...")
+            self._shutdown_event.set()
+
+        # Graceful shutdown 수행
+        self._graceful_shutdown(server)
 
     def _serve_async(self, max_workers, port, *args, **kwargs):
         """
@@ -68,21 +144,31 @@ class Command(BaseCommand):
         """
         self.stdout.write("gRPC async server starting  at %s" % datetime.datetime.now())
 
+        # 시그널 핸들러 설정
+        self._setup_signal_handlers()
+
         # Coroutines to be invoked when the event loop is shutting down.
         _cleanup_coroutines = []
 
         server = create_server(max_workers, port)
+        self._server = server
 
         async def _main_routine():
             await server.start()
             self.stdout.write("gRPC async server is listening port %s" % port)
 
-            if kwargs["list_handlers"] is True:
+            # list_handlers 옵션이 있으면 핸들러 목록 출력 (기본값 False)
+            if kwargs.get("list_handlers", False):
                 self.stdout.write("Registered handlers:")
                 for handler in extract_handlers(server):
                     self.stdout.write("* %s" % handler)
 
-            await server.wait_for_termination()
+            # Graceful shutdown을 위한 대기
+            while not self._shutdown_event.is_set():
+                await asyncio.sleep(0.1)
+
+            # Graceful shutdown 수행
+            await self._graceful_shutdown_async(server)
 
         async def _graceful_shutdown():
             # Send the signal to all connected receivers on server shutdown.
@@ -91,6 +177,10 @@ class Command(BaseCommand):
 
         loop = asyncio.get_event_loop()
         try:
+            loop.run_until_complete(_main_routine())
+        except KeyboardInterrupt:
+            self.stdout.write("Received keyboard interrupt, starting graceful shutdown...")
+            self._shutdown_event.set()
             loop.run_until_complete(_main_routine())
         finally:
             loop.run_until_complete(*_cleanup_coroutines)
