@@ -5,6 +5,7 @@ language: python
 python:
   - "3.11"
   - "3.12"
+  - "3.13"
 
 env:
   global:
@@ -13,6 +14,7 @@ env:
   matrix:
     - TOX_ENV=django42
     - TOX_ENV=django50
+    - TOX_ENV=django60
 
 # Cache pip and Poetry dependencies for faster builds
 cache:
