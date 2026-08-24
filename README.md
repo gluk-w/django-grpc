@@ -176,3 +176,12 @@ In addition to standard gRPC context methods, FakeServicerContext provides:
  * `.set_invocation_metadata()` allows to simulate metadata from client to server.
  * `.get_trailing_metadata()` to get metadata set by your server
  * `.abort_status` and `.abort_message` to check if `.abort()` was called 
+ * `.abort_called` tells whether `.abort()` was called at all. Unlike `.abort_status`, it
+   distinguishes "aborted with `StatusCode.UNKNOWN`" from "never aborted".
+ * `.abort_code` and `.aborted` are read/write aliases of `.abort_status` and `.abort_called`.
+ * `.set_time_remaining()` allows to simulate an RPC deadline, which `.time_remaining()` reports.
+   Defaults to 60 seconds.
+ * `.clear()` forgets the outcome of a call (abort state and trailing metadata) so that the same
+   context can be reused for another one. Invocation metadata and the deadline are preserved.
+
+The package ships a `py.typed` marker, so type checkers see the annotations above instead of `Any`.
