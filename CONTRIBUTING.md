@@ -53,11 +53,10 @@ Ready to contribute? Here's how to set up `django-grpc` for local development.
 
     $ git clone git@github.com:your_name_here/django-grpc.git
 
-3. Install your local copy into a virtualenv. Assuming you have virtualenvwrapper installed, this is how you set up your fork for local development::
+3. Install your local copy. The project uses `poetry`, which creates the virtualenv for you::
 
-    $ mkvirtualenv django-grpc
     $ cd django-grpc/
-    $ python setup.py develop
+    $ poetry install
 
 4. Create a branch for local development::
 
@@ -69,10 +68,9 @@ Ready to contribute? Here's how to set up `django-grpc` for local development.
    tests, including testing other Python versions with tox::
 
         $ make lint
-        $ python setup.py test
-        $ make test-all
+        $ poetry run tox
 
-   To get flake8 and tox, just pip install them into your virtualenv.
+   `tox` runs the suite against every supported Python and Django combination.
 
 6. Commit your changes and push your branch to GitHub::
 
@@ -89,13 +87,52 @@ Before you submit a pull request, check that it meets these guidelines:
 1. The pull request should include tests.
 2. If the pull request adds functionality, the docs should be updated. Put
    your new functionality into a function with a docstring, and add the
-   feature to the list in README.rst.
-3. The pull request should work for Python 3.4+, and for PyPy. Check
-   https://travis-ci.org/gluk-w/django-grpc/pull_requests
-   and make sure that the tests pass for all supported Python versions.
+   feature to the list in README.md.
+3. The pull request should work for every Python and Django version in
+   `tox.ini`. The "Test with tox" workflow checks this on each pull request;
+   make sure it is green before asking for a review.
 
 ### Tips
 
-To run a subset of tests::
+To run a single environment or a subset of tests::
 
-    $ make test-all
+    $ poetry run tox -e py313-django52
+    $ poetry run pytest tests/test_server.py
+
+## Releasing
+
+Releases are automated. Every push to `master` runs the test suite, builds
+`<major>.<minor>.<build number>`, publishes it to PyPI and creates the matching
+git tag and GitHub release. Nobody picks a version or creates a tag by hand.
+
+* The `major.minor` pair is read from the `version` field in `pyproject.toml`.
+* The patch component is the build number of the "Upload Python Package"
+  workflow. It only ever moves forward, so expect gaps in the sequence.
+
+A normal merge to `master` therefore ships `1.2.13`, then `1.2.14`, and so on
+with no extra action.
+
+### Starting a new minor series
+
+When the accumulated changes deserve a new minor version, bump it and push::
+
+    $ poetry version minor          # 1.2.0 -> 1.3.0
+    $ git commit -am "Bump version to 1.3"
+    $ git push
+
+The next release cut from `master` is then `1.3.<build number>`. Use
+`poetry version major` to start a new major series.
+
+The third component committed in `pyproject.toml` is only a placeholder. It is
+never published: the workflow overwrites it at build time.
+
+### Things not to break
+
+* `.github/workflows/pypi-publish.yml` must keep its filename and its `pypi`
+  environment. PyPI trusted publishing is keyed on both, and the build number
+  is a per-workflow-file counter, so renaming the file breaks authentication
+  and restarts versions at 1.
+* The publish step must stay inline in that workflow. Moving it into a reusable
+  workflow changes the OIDC claim PyPI checks, and the upload is rejected.
+* The build refuses to publish a version that is not ahead of what PyPI already
+  has, so a reset counter fails loudly instead of silently mis-tagging a release.
