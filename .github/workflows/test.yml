@@ -1,12 +1,27 @@
 name: Test with tox
 
-on: [push]
+on:
+  # master is covered by the release workflow, which calls this one as its gate.
+  # Excluding it here avoids running the suite twice on every merge.
+  push:
+    branches-ignore:
+      - master
+      - 'dependabot/**'
+  # Dependabot branches and forks are covered here instead.
+  pull_request:
+    branches: [master]
+  # Called by pypi-publish.yml before anything is published.
+  workflow_call:
+
+permissions:
+  contents: read
 
 jobs:
-  build:
+  tox:
 
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python: ["3.11", "3.13"]
 
@@ -17,7 +32,8 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
       - name: Install tox and any other packages
-        run: pip install poetry tox
+        # Pinned: this job is now the only gate in front of a PyPI upload.
+        run: pip install "poetry==2.4.1" "tox==4.60.1"
       - name: Install dependencies
         run: poetry install
       - name: Run tox

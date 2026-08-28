@@ -1,8 +1,0 @@
-include AUTHORS.md
-include CONTRIBUTING.md
-include HISTORY.md
-include LICENSE
-include README.md
-recursive-include django_grpc *py
-recursive-include django_grpc_testtools *py
-include django_grpc_testtools/py.typed
