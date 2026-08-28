@@ -5,6 +5,11 @@ from collections.abc import Sequence, Mapping
 from grpc import ServicerContext
 
 MetadataType = Sequence[tuple[str, str]]
+
+#: Reported by FakeServicerContext.time_remaining() unless overridden via set_time_remaining().
+#: A finite default keeps servicer code that does arithmetic on the deadline working out of the box.
+DEFAULT_TIME_REMAINING = 60.0
+
 _NON_OK_RENDEZVOUS_REPR_FORMAT = (
     "<{} of RPC that terminated with:\n"
     "\tstatus = {}\n"
@@ -20,16 +25,54 @@ class FakeServicerContext(ServicerContext):
     for validation in tests
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.abort_status: StatusCode = StatusCode.UNKNOWN
         self.abort_message: str = ""
+        self.abort_called: bool = False
         self._invocation_metadata: MetadataType = tuple()
         self._trailing_metadata: Mapping[str, str] = dict()
+        self._time_remaining: float = DEFAULT_TIME_REMAINING
+
+    @property
+    def abort_code(self) -> StatusCode:
+        """
+        Alias of `abort_status`, readable and writable
+        """
+        return self.abort_status
+
+    @abort_code.setter
+    def abort_code(self, value: StatusCode) -> None:
+        self.abort_status = value
+
+    @property
+    def aborted(self) -> bool:
+        """
+        Alias of `abort_called`, readable and writable
+        """
+        return self.abort_called
+
+    @aborted.setter
+    def aborted(self, value: bool) -> None:
+        self.abort_called = value
+
+    def clear(self) -> None:
+        """
+        Forget what the servicer did, so that the same context can be reused for another call.
+
+        Only the outcome of the call is reset. Input supplied by the client (invocation metadata)
+        and the simulated deadline are preserved, because they describe the call to be made rather
+        than its result.
+        """
+        self.abort_status = StatusCode.UNKNOWN
+        self.abort_message = ""
+        self.abort_called = False
+        self._trailing_metadata = dict()
 
     def abort(self, status: StatusCode, message: str) -> NoReturn:
         """
         gRPC method that is called on RPC exit
         """
+        self.abort_called = True
         self.abort_status = status
         self.abort_message = message
         debug_error_string = (
@@ -72,6 +115,18 @@ class FakeServicerContext(ServicerContext):
         Helper to emulate request metadata
         """
         self._invocation_metadata = items
+
+    def time_remaining(self) -> float:
+        """
+        gRPC method that reports how many seconds are left before the RPC deadline
+        """
+        return self._time_remaining
+
+    def set_time_remaining(self, seconds: float) -> None:
+        """
+        Helper to emulate an RPC deadline
+        """
+        self._time_remaining = seconds
 
     def set_code(self, code: StatusCode) -> None:
         self.abort_status = code
@@ -129,9 +184,6 @@ class FakeServicerContext(ServicerContext):
         raise NotImplementedError()
 
     def is_active(self):
-        raise NotImplementedError()
-
-    def time_remaining(self):
         raise NotImplementedError()
 
     def cancel(self):
